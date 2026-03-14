@@ -1,0 +1,60 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list-all
+    silent: true
+
+  # ========================================
+  # Linting
+  # ========================================
+  lint:
+    desc: Run linters
+    cmds:
+      - golangci-lint run --config .golangci.yml
+
+  fmt:
+    desc: Run formatters
+    cmds:
+      - gofmt -s -w .
+
+  # ========================================
+  # Server
+  # ========================================
+  run:server:
+    desc: Run the server
+    dir: server
+    cmds:
+      - go run cmd/main.go
+
+  test:server:unit:
+    desc: Run unit tests for the server
+    dir: server
+    cmds:
+      - go test -v ./... -short -count=1
+
+  test:server:integration:
+    desc: Run integration tests for the server
+    dir: server
+    cmds:
+      - go test -v ./... -count=1
+
+  # ========================================
+  # Client
+  # ========================================
+  run:client:
+    desc: Run the client
+    dir: client
+    cmds:
+      - go run main.go
+
+  # ========================================
+  # Mocks
+  # ========================================
+  generate:mocks:server:
+    desc: Generate mocks using mockery (version 3.7.0 or later)
+    dir: server
+    cmds:
+      - mockery --config .mockery.yml
