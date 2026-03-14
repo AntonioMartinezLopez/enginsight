@@ -8,7 +8,7 @@ import (
 )
 
 type CounterStore struct {
-	mutex sync.Mutex
+	mutex sync.RWMutex
 	count counter.Count
 }
 
@@ -24,7 +24,7 @@ func (s *CounterStore) Increment(ctx context.Context) error {
 }
 
 func (s *CounterStore) GetMessageCount(ctx context.Context) (counter.Count, error) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	return s.count, nil
 }
