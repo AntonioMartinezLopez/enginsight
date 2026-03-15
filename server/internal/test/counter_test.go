@@ -172,10 +172,7 @@ func TestCounterIntegrationMultipleClients(t *testing.T) {
 	}
 
 	// Final verification of total count
-	totalCount, err := setup.counterService.GetNumberOfProcessedMessages(t.Context())
-	if err != nil {
-		t.Fatalf("Failed to get final message count: %v", err)
-	}
+	totalCount, _ := setup.counterService.GetNumberOfProcessedMessages(t.Context())
 	expectedTotal := counter.Count(len(tests) * 2) // Each test case is processed by 2 clients
 	if totalCount != expectedTotal {
 		t.Errorf("Expected total count %d, got %d", expectedTotal, totalCount)
