@@ -59,3 +59,4 @@ task generate:mocks:server
 
 1. **Context Handling** - Context parameters accepted but not checked for cancellation/timeouts
 2. **Error Propagation** - Custom error codes/types not exposed through JSON-RPC layer to clients
+3. **Testing** - Currently testing only happy paths

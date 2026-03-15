@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AntonioMartinezLopez/enginsight/jrpc"
 	"github.com/AntonioMartinezLopez/enginsight/server/config"
 	"github.com/AntonioMartinezLopez/enginsight/server/internal/domain/counter"
+	"github.com/AntonioMartinezLopez/enginsight/server/internal/infra/rpc"
 	"github.com/AntonioMartinezLopez/enginsight/server/internal/infra/store"
 )
 
@@ -19,20 +19,16 @@ func main() {
 	// Load configuration from .env file
 	config := config.LoadConfig()
 
-	// set up application
+	// Initilaze store, services and RPC server
 	store := store.New()
 	counterService := counter.New(store)
-
-	// Create the JSON-RPC server with our service implementation
-	handlers := jrpc.Handlers{
-		CountService: counterService,
-	}
-	rpcServer := jrpc.NewServer(handlers)
-	defer rpcServer.Close()
+	rpc := rpc.New(rpc.ServerConfig{
+		Service: counterService,
+	})
 
 	// Set up HTTP server with the JSON-RPC handler
 	mux := http.NewServeMux()
-	mux.Handle(config.RPCPath, rpcServer)
+	mux.Handle(config.RPCPath, rpc.Handler())
 
 	httpServer := &http.Server{
 		Addr:              config.GetServerAddress(),
