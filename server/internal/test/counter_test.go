@@ -7,6 +7,7 @@ import (
 
 	"github.com/AntonioMartinezLopez/enginsight/jrpc"
 	"github.com/AntonioMartinezLopez/enginsight/server/internal/domain/counter"
+	"github.com/AntonioMartinezLopez/enginsight/server/internal/infra/rpc"
 	"github.com/AntonioMartinezLopez/enginsight/server/internal/infra/store"
 )
 
@@ -24,20 +25,17 @@ func setupTestServer(t *testing.T) *testServerSetup {
 	// Set up application
 	store := store.New()
 	counterService := counter.New(store)
-
-	// Create the JSON-RPC server with our service implementation
-	handlers := jrpc.Handlers{
-		CountService: counterService,
-	}
-	rpcServer := jrpc.NewServer(handlers)
+	rpc := rpc.New(rpc.ServerConfig{
+		Service: counterService,
+	})
 
 	// Set up HTTP test server with the JSON-RPC handler
-	httpServer := httptest.NewServer(rpcServer)
+	httpServer := httptest.NewServer(rpc.Handler())
 
 	return &testServerSetup{
 		counterService: counterService,
 		httpServer:     httpServer,
-		rpcServer:      rpcServer,
+		rpcServer:      rpc.Handler(),
 	}
 }
 

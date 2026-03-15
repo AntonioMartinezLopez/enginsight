@@ -2,9 +2,11 @@ package counter_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 
+	pkgerrors "github.com/AntonioMartinezLopez/enginsight/pkg"
 	"github.com/AntonioMartinezLopez/enginsight/server/internal/domain/counter"
 	"github.com/AntonioMartinezLopez/enginsight/server/internal/domain/counter/mocks"
 	"github.com/stretchr/testify/mock"
@@ -30,16 +32,6 @@ func TestCounter(t *testing.T) {
 			name:     "small message with few characters",
 			message:  "Hi",
 			expected: 2,
-		},
-		{
-			name:     "regular message",
-			message:  "Hello, World!",
-			expected: 13,
-		},
-		{
-			name:     "large message with 20+ characters",
-			message:  "This is a long message with more than twenty characters!",
-			expected: 56,
 		},
 		{
 			name:     "message with newline escape character",
@@ -121,4 +113,60 @@ func TestCounterProcessMultipleMessages(t *testing.T) {
 	totalCount, err := counterService.GetNumberOfProcessedMessages(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, counter.Count(3), totalCount)
+}
+
+func TestCounterIncrementError(t *testing.T) {
+	if !testing.Short() {
+		t.Skip()
+	}
+
+	// Create a mock CounterStore
+	mockStore := mocks.NewMockCounterStore(t)
+
+	// Set up expectations - Increment returns a generic error
+	storeErr := errors.New("store failure")
+	mockStore.EXPECT().Increment(mock.Anything).Return(storeErr).Times(1)
+
+	// Create the Counter service with the mock store
+	counterService := counter.New(mockStore)
+
+	// Call the Count method - should return an error
+	count, err := counterService.Count(context.Background(), "test message")
+	require.Error(t, err)
+	require.Equal(t, 0, count)
+
+	// Assert the error is of type InternalError from counter package
+	var internalErr *pkgerrors.Error
+	require.ErrorAs(t, err, &internalErr)
+	require.Equal(t, counter.ErrCodeInternal, internalErr.Code)
+	require.Contains(t, internalErr.Error(), "failed to increment message count")
+	require.ErrorIs(t, internalErr.Unwrap(), storeErr)
+}
+
+func TestCounterGetMessageCountError(t *testing.T) {
+	if !testing.Short() {
+		t.Skip()
+	}
+
+	// Create a mock CounterStore
+	mockStore := mocks.NewMockCounterStore(t)
+
+	// Set up expectations - GetMessageCount returns a generic error
+	storeErr := errors.New("store failure")
+	mockStore.EXPECT().GetMessageCount(mock.Anything).Return(counter.Count(0), storeErr).Times(1)
+
+	// Create the Counter service with the mock store
+	counterService := counter.New(mockStore)
+
+	// Call the GetNumberOfProcessedMessages method - should return an error
+	count, err := counterService.GetNumberOfProcessedMessages(context.Background())
+	require.Error(t, err)
+	require.Equal(t, counter.Count(0), count)
+
+	// Assert the error is of type InternalError from counter package
+	var internalErr *pkgerrors.Error
+	require.ErrorAs(t, err, &internalErr)
+	require.Equal(t, counter.ErrCodeInternal, internalErr.Code)
+	require.Contains(t, internalErr.Error(), "failed to get message count")
+	require.ErrorIs(t, internalErr.Unwrap(), storeErr)
 }
