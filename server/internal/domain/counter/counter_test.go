@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sync"
 	"testing"
+	"unicode/utf8"
 
 	pkgerrors "github.com/AntonioMartinezLopez/enginsight/pkg"
 	"github.com/AntonioMartinezLopez/enginsight/server/internal/domain/counter"
@@ -51,7 +52,7 @@ func TestCounter(t *testing.T) {
 		{
 			name:     "message with special unicode characters",
 			message:  "Hello 🌍 World 🚀",
-			expected: 21,
+			expected: 15,
 		},
 		{
 			name:     "message with quotes and backslashes",
@@ -103,7 +104,7 @@ func TestCounterProcessMultipleMessages(t *testing.T) {
 		go func(m string) {
 			count, err := counterService.Count(context.Background(), m)
 			require.NoError(t, err)
-			require.Equal(t, len(m), count)
+			require.Equal(t, utf8.RuneCountInString(m), count)
 			wg.Done()
 		}(msg)
 	}
