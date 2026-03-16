@@ -22,6 +22,12 @@ cp server/.env.template server/.env
 task run:server
 ```
 
+### Running the Client
+
+```bash
+task run:client
+```
+
 ### Available Tasks
 
 View all available tasks:
