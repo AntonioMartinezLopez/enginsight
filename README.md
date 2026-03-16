@@ -36,9 +36,9 @@ Common tasks:
 
 ## Project Structure
 
+- `jrpc/` - JSON-RPC communication layer
 - `client/` - Client implementation
 - `server/` - Server implementation with domain-driven design
-- `jrpc/` - JSON-RPC communication layer
 - `server/internal/domain/` - Domain/Business logic
 
 ## Testing
